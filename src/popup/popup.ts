@@ -1,6 +1,7 @@
 import { ProfileService } from '../services/ProfileService';
 import { isValidXProfileUrl } from '../utils/validation';
 import { getErrorMessage } from '../utils/errors';
+import { XProfile } from '../types';
 
 document.addEventListener('DOMContentLoaded', () => {
   const profileUrlInput = document.getElementById('profile-url') as HTMLInputElement;
@@ -62,14 +63,35 @@ document.addEventListener('DOMContentLoaded', () => {
     statusDiv.className = `status ${type}`;
   }
   
-  function displayProfilePreview(profile: any) {
-    previewDiv.innerHTML = `
-      <div style="text-align: center; margin-top: 20px;">
-        <img src="${profile.avatarUrl}" alt="${profile.displayName}" style="width: 80px; height: 80px; border-radius: 50%;">
-        <h3>${profile.displayName}</h3>
-        <p>@${profile.username}</p>
-        ${profile.verified ? '<span style="color: #1da1f2;">✓ Verified</span>' : ''}
-      </div>
-    `;
+  function displayProfilePreview(profile: XProfile) {
+    // Clear previous content
+    previewDiv.innerHTML = '';
+    
+    const container = document.createElement('div');
+    container.style.cssText = 'text-align: center; margin-top: 20px;';
+    
+    const img = document.createElement('img');
+    img.src = profile.avatarUrl;
+    img.alt = profile.displayName;
+    img.style.cssText = 'width: 80px; height: 80px; border-radius: 50%;';
+    
+    const nameHeader = document.createElement('h3');
+    nameHeader.textContent = profile.displayName;
+    
+    const usernameP = document.createElement('p');
+    usernameP.textContent = `@${profile.username}`;
+    
+    container.appendChild(img);
+    container.appendChild(nameHeader);
+    container.appendChild(usernameP);
+    
+    if (profile.verified) {
+      const verifiedSpan = document.createElement('span');
+      verifiedSpan.style.color = '#1da1f2';
+      verifiedSpan.textContent = '✓ Verified';
+      container.appendChild(verifiedSpan);
+    }
+    
+    previewDiv.appendChild(container);
   }
 });

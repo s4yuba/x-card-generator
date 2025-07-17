@@ -65,7 +65,7 @@ describe('Validation Utils', () => {
       verified: true,
       followerCount: '1000',
       followingCount: '500',
-      extractedAt: new Date().toISOString()
+      extractedAt: new Date()
     };
 
     it('should validate correct profile data', () => {

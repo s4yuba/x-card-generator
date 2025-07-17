@@ -77,7 +77,7 @@ describe('ProfileService', () => {
       verified: true,
       followerCount: '1.2K',
       followingCount: '500',
-      extractedAt: new Date().toISOString()
+      extractedAt: new Date()
     };
 
     it('should fetch profile successfully', async () => {
@@ -160,7 +160,7 @@ describe('ProfileService', () => {
               verified: false,
               followerCount: '100',
               followingCount: '50',
-              extractedAt: new Date().toISOString()
+              extractedAt: new Date()
             }
           });
         } else {
@@ -198,7 +198,7 @@ describe('ProfileService', () => {
             verified: true,
             followerCount: '1K',
             followingCount: '100',
-            extractedAt: new Date().toISOString()
+            extractedAt: new Date()
           }
         });
       });
