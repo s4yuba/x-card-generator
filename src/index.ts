@@ -1,45 +1,42 @@
-import express from 'express';
-import { NameTagGenerator } from './services/NameTagGenerator';
+/**
+ * Main server entry point
+ */
 
-const app = express();
-const port = process.env.PORT || 3000;
+import { createApp } from './api/app';
+import dotenv from 'dotenv';
 
-app.use(express.json());
-app.use(express.static('public'));
+// Load environment variables
+dotenv.config();
 
-const nameTagGenerator = new NameTagGenerator();
+const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
 
-app.post('/api/generate', async (req, res) => {
-  try {
-    const { profileUrl } = req.body;
-    
-    if (!profileUrl) {
-      return res.status(400).json({ 
-        success: false, 
-        error: { 
-          code: 'MISSING_URL', 
-          message: 'Profile URL is required' 
-        } 
-      });
-    }
+// Create and start server
+const app = createApp();
 
-    const pdfBuffer = await nameTagGenerator.generateNameTag(profileUrl);
-    
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename="name-tag.pdf"');
-    res.send(pdfBuffer);
-  } catch (error) {
-    console.error('Error generating name tag:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: { 
-        code: 'GENERATION_FAILED', 
-        message: 'Failed to generate name tag' 
-      } 
-    });
-  }
+const server = app.listen(PORT, () => {
+  const displayHost = HOST === '0.0.0.0' ? 'localhost' : HOST;
+  console.log(`🚀 X Profile Name Tag Generator is running!`);
+  console.log(`📍 Server: http://${displayHost}:${PORT}`);
+  console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📋 API Docs: http://${displayHost}:${PORT}/api/name-tag/options`);
 });
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
 });
+
+process.on('SIGINT', () => {
+  console.log('SIGINT signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
+});
+
+export { app, server };
