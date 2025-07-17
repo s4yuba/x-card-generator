@@ -1,15 +1,17 @@
-/**
- * Main server entry point
- */
-
-import { createApp } from './api/app';
 import dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config();
 
+/**
+ * Main server entry point
+ */
+
+import { createApp } from './api/app';
+
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || '0.0.0.0';
+const HOST = process.env.HOST
+  || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1');
 
 // Create and start server
 const app = createApp();

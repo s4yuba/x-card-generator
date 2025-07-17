@@ -2,7 +2,9 @@
  * Rate limiting middleware
  */
 
-import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
+/// <reference path="../../types/express.d.ts" />
+
+import rateLimit from 'express-rate-limit';
 import { Request, Response } from 'express';
 
 // Create different rate limiters for different endpoints
@@ -12,12 +14,12 @@ export const rateLimiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  handler: (req, res) => {
+  handler: (req: Request, res: Response) => {
     res.status(429).json({
       error: {
         message: 'Too many requests, please try again later.',
         statusCode: 429,
-        retryAfter: (req as any).rateLimit?.resetTime,
+        retryAfter: req.rateLimit?.resetTime,
       },
     });
   },
