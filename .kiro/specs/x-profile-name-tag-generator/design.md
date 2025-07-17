@@ -6,6 +6,59 @@ XプロフィールリンクからPDF名札を生成するChrome拡張機能の�
 
 ## アーキテクチャ
 
+### ドメイン駆動設計アーキテクチャ
+
+```mermaid
+graph TB
+    subgraph "プレゼンテーション層"
+        UI[Chrome拡張機能UI]
+        BG[Background Script]
+        CS[Content Script]
+    end
+    
+    subgraph "アプリケーション層"
+        AS[Application Services]
+        UC[Use Cases]
+    end
+    
+    subgraph "ドメイン層"
+        subgraph "名札生成ドメイン"
+            NT[NameTag Entity]
+            NTR[NameTagRepository]
+            NTS[NameTagService]
+        end
+        subgraph "プロフィールドメイン"
+            PR[Profile Entity]
+            PRR[ProfileRepository]
+            PRS[ProfileService]
+        end
+        subgraph "テンプレートドメイン"
+            TP[Template Entity]
+            TPR[TemplateRepository]
+        end
+    end
+    
+    subgraph "インフラストラクチャ層"
+        XA[X API Adapter]
+        PDF[PDF Generator]
+        ST[Chrome Storage]
+        DL[Download Service]
+    end
+    
+    UI --> AS
+    BG --> AS
+    CS --> AS
+    AS --> UC
+    UC --> NTS
+    UC --> PRS
+    NTS --> NT
+    PRS --> PR
+    NTR --> ST
+    PRR --> XA
+    TPR --> ST
+    PDF --> DL
+```
+
 ### システム構成
 
 ```mermaid
@@ -34,23 +87,27 @@ graph TB
 ### 1. Chrome拡張機能コンポーネント
 
 #### Popup UI (`popup.html`, `popup.ts`)
+
 - プロフィールURL入力フィールド
 - 名札設定パネル
 - 生成ボタン
 - プログレス表示
 
 #### Background Script (`background.ts`)
+
 - 拡張機能の初期化
 - コンテキストメニューの管理
 - タブ情報の取得
 
 #### Content Script (`content.ts`)
+
 - 現在のXプロフィールページのURL検出
 - ページ情報の抽出
 
 ### 2. サービスコンポーネント
 
 #### ProfileService
+
 ```typescript
 interface ProfileService {
   fetchProfile(url: string): Promise<XProfile>;
@@ -67,6 +124,7 @@ interface XProfile {
 ```
 
 #### NameTagService
+
 ```typescript
 interface NameTagService {
   generateNameTag(profile: XProfile, template: NameTagTemplate): Promise<NameTagData>;
@@ -90,6 +148,7 @@ interface NameTagData {
 ```
 
 #### PDFService
+
 ```typescript
 interface PDFService {
   generatePDF(nameTags: NameTagData[]): Promise<Blob>;
@@ -100,6 +159,7 @@ interface PDFService {
 ### 3. 設定管理
 
 #### SettingsService
+
 ```typescript
 interface SettingsService {
   getSettings(): Promise<AppSettings>;
@@ -124,6 +184,7 @@ interface ColorScheme {
 ## データモデル
 
 ### プロフィールデータ
+
 ```typescript
 interface XProfile {
   username: string;          // @username
@@ -137,6 +198,7 @@ interface XProfile {
 ```
 
 ### 名札テンプレート
+
 ```typescript
 interface NameTagTemplate {
   id: string;
@@ -158,7 +220,8 @@ interface TemplateElement {
 }
 ```
 
-### エラーハンドリング
+### エラーハンドリングモデル
+
 ```typescript
 interface APIError {
   code: string;
@@ -193,6 +256,7 @@ enum ErrorCodes {
    - エラーレポート: 失敗したURLとエラー理由を表示
 
 ### エラー表示
+
 ```typescript
 interface ErrorDisplay {
   showError(error: APIError): void;
@@ -204,22 +268,26 @@ interface ErrorDisplay {
 ## テスト戦略
 
 ### 単体テスト
+
 - ProfileService: プロフィール取得ロジック
 - NameTagService: 名札生成ロジック
 - PDFService: PDF生成機能
 - SettingsService: 設定の保存・読み込み
 
 ### 統合テスト
+
 - Chrome拡張機能のポップアップ動作
 - バックグラウンドスクリプトとの連携
 - ファイルダウンロード機能
 
 ### E2Eテスト
+
 - 実際のXプロフィールURLでの名札生成
 - 複数プロフィールの一括処理
 - 異なるテンプレートでの生成
 
 ### テストデータ
+
 ```typescript
 const mockProfiles: XProfile[] = [
   {
@@ -235,16 +303,19 @@ const mockProfiles: XProfile[] = [
 ## セキュリティ考慮事項
 
 ### データプライバシー
+
 - プロフィール情報の一時的な保存のみ
 - ローカルストレージの暗号化
 - 不要なデータの自動削除
 
 ### API制限
+
 - レート制限の遵守
 - 適切なUser-Agentの設定
 - エラー時の指数バックオフ
 
 ### Chrome拡張機能セキュリティ
+
 - Manifest V3の使用
 - 最小権限の原則
 - Content Security Policy の適用
@@ -252,16 +323,19 @@ const mockProfiles: XProfile[] = [
 ## パフォーマンス最適化
 
 ### 画像処理
+
 - プロフィール画像のキャッシュ
 - 画像サイズの最適化
 - 遅延読み込み
 
 ### PDF生成
+
 - Canvas要素の再利用
 - メモリ使用量の監視
 - バッチ処理のサイズ制限
 
 ### ネットワーク
+
 - 並列リクエストの制限
 - タイムアウト設定
 - 失敗時の再試行戦略

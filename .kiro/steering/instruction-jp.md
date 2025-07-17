@@ -12,11 +12,8 @@ Follow when planning in spec:
 - Generate/Update `design.md` in Japanese
 - Generate/Update `tasks.md` in Japanese
 
-## Instraction for `design.md`
+## Instractions for planning
 
 - Follow Eric Evans Domain-Driven Design
-
-## Instraction for `tasks.md`
-
 - Follow t_wada TDD method
 - Follow KentBeck Tidy First principles
