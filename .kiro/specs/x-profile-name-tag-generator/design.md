@@ -1,268 +1,267 @@
-# Design Document
+# 設計書
 
-## Overview
+## 概要
 
-The X Profile Name Tag Generator is a web-based tool that creates printable PDF name tags from X (Twitter) profile information. The system extracts user data through web scraping, processes profile images, generates QR codes, and outputs a professionally formatted PDF suitable for printing on standard paper or card stock.
+XプロフィールリンクからPDF名札を生成するChrome拡張機能の設計書です。この拡張機能は、Xのプロフィール情報を取得し、カスタマイズ可能な名札テンプレートを使用してPDFファイルを生成します。
 
-## Architecture
+## アーキテクチャ
 
-The application follows a modular architecture with clear separation of concerns:
+### システム構成
 
 ```mermaid
-graph TD
-    A[Web Interface] --> B[URL Validator]
-    B --> C[Profile Scraper]
-    C --> D[Image Processor]
-    C --> E[QR Code Generator]
-    D --> F[PDF Generator]
-    E --> F
-    F --> G[Download Handler]
+graph TB
+    A[Chrome拡張機能UI] --> B[プロフィール取得サービス]
+    A --> C[名札生成サービス]
+    A --> D[PDF生成サービス]
+    B --> E[X API / スクレイピング]
+    C --> F[テンプレートエンジン]
+    D --> G[PDF.js / jsPDF]
+    A --> H[設定管理]
+    A --> I[ファイルダウンロード]
 ```
 
-### Core Components:
-- **Web Interface**: Simple form for URL input and file download
-- **Profile Scraper**: Extracts user data from X profile pages
-- **Image Processor**: Downloads and optimizes profile images
-- **QR Code Generator**: Creates scannable QR codes
-- **PDF Generator**: Combines all elements into a printable document
+### 技術スタック
 
-## Components and Interfaces
+- **フロントエンド**: HTML, CSS, TypeScript
+- **Chrome拡張機能**: Manifest V3
+- **PDF生成**: jsPDF
+- **プロフィール取得**: Fetch API + DOM解析
+- **テンプレート**: Canvas API
+- **状態管理**: Chrome Storage API
 
-### 1. Profile Scraper Module
+## コンポーネントとインターフェース
 
-**Purpose**: Extract user information from X profile pages
+### 1. Chrome拡張機能コンポーネント
 
-**Interface**:
+#### Popup UI (`popup.html`, `popup.ts`)
+- プロフィールURL入力フィールド
+- 名札設定パネル
+- 生成ボタン
+- プログレス表示
+
+#### Background Script (`background.ts`)
+- 拡張機能の初期化
+- コンテキストメニューの管理
+- タブ情報の取得
+
+#### Content Script (`content.ts`)
+- 現在のXプロフィールページのURL検出
+- ページ情報の抽出
+
+### 2. サービスコンポーネント
+
+#### ProfileService
 ```typescript
-interface ProfileData {
+interface ProfileService {
+  fetchProfile(url: string): Promise<XProfile>;
+  fetchMultipleProfiles(urls: string[]): Promise<XProfile[]>;
+}
+
+interface XProfile {
   username: string;
   displayName: string;
-  profileImageUrl: string;
-  profileUrl: string;
-}
-
-interface ProfileScraper {
-  extractProfile(url: string): Promise<ProfileData>;
-  validateUrl(url: string): boolean;
+  profileImage: string;
+  bio?: string;
+  verified: boolean;
 }
 ```
 
-**Implementation Approach**:
-- Use headless browser (Puppeteer/Playwright) to handle JavaScript-rendered content
-- Parse DOM elements to extract username, display name, and profile image
-- Handle rate limiting and anti-bot measures
-- Implement retry logic for network failures
-
-### 2. Image Processor Module
-
-**Purpose**: Download and optimize profile images for name tag use
-
-**Interface**:
+#### NameTagService
 ```typescript
-interface ProcessedImage {
-  buffer: Buffer;
+interface NameTagService {
+  generateNameTag(profile: XProfile, template: NameTagTemplate): Promise<NameTagData>;
+  generateMultipleNameTags(profiles: XProfile[], template: NameTagTemplate): Promise<NameTagData[]>;
+}
+
+interface NameTagTemplate {
+  id: string;
+  name: string;
   width: number;
   height: number;
-  format: string;
+  layout: LayoutConfig;
+  styling: StyleConfig;
 }
 
-interface ImageProcessor {
-  downloadImage(url: string): Promise<Buffer>;
-  processForNameTag(imageBuffer: Buffer): Promise<ProcessedImage>;
-  getDefaultImage(): ProcessedImage;
-}
-```
-
-**Implementation Details**:
-- Download images using HTTP client with proper headers
-- Resize images to optimal dimensions (e.g., 200x200px)
-- Convert to appropriate format (JPEG/PNG)
-- Apply circular cropping for professional appearance
-- Fallback to default avatar when image unavailable
-
-### 3. QR Code Generator Module
-
-**Purpose**: Generate QR codes linking to X profiles
-
-**Interface**:
-```typescript
-interface QRCodeOptions {
-  size: number;
-  errorCorrectionLevel: 'L' | 'M' | 'Q' | 'H';
-  margin: number;
-}
-
-interface QRCodeGenerator {
-  generateQRCode(url: string, options: QRCodeOptions): Promise<Buffer>;
-}
-```
-
-**Implementation Details**:
-- Use established QR code library (qrcode npm package)
-- Generate high-resolution QR codes for print quality
-- Optimize for scanning distance (medium error correction)
-- Output as PNG buffer for PDF embedding
-
-### 4. PDF Generator Module
-
-**Purpose**: Create printable name tag PDFs
-
-**Interface**:
-```typescript
 interface NameTagData {
-  profileData: ProfileData;
-  profileImage: ProcessedImage;
-  qrCode: Buffer;
-}
-
-interface PDFGenerator {
-  generateNameTag(data: NameTagData): Promise<Buffer>;
-  createFrontSide(data: NameTagData): PDFPage;
-  createBackSide(qrCode: Buffer, profileUrl: string): PDFPage;
+  profile: XProfile;
+  canvas: HTMLCanvasElement;
+  template: NameTagTemplate;
 }
 ```
 
-**Implementation Details**:
-- Use PDF generation library (PDFKit or jsPDF)
-- Create dual-page layout (front and back)
-- Implement standard name tag dimensions (3.5" x 2.25")
-- Include crop marks and fold lines
-- Ensure 300 DPI resolution for print quality
-
-## Data Models
-
-### ProfileData Model
+#### PDFService
 ```typescript
-interface ProfileData {
-  username: string;        // @username format
-  displayName: string;     // Full display name
-  profileImageUrl: string; // URL to profile image
-  profileUrl: string;      // Original X profile URL
-  extractedAt: Date;       // Timestamp of extraction
+interface PDFService {
+  generatePDF(nameTags: NameTagData[]): Promise<Blob>;
+  downloadPDF(pdfBlob: Blob, filename: string): void;
 }
 ```
 
-### NameTagConfig Model
+### 3. 設定管理
+
+#### SettingsService
 ```typescript
-interface NameTagConfig {
+interface SettingsService {
+  getSettings(): Promise<AppSettings>;
+  saveSettings(settings: AppSettings): Promise<void>;
+}
+
+interface AppSettings {
+  defaultTemplate: string;
+  fontSize: number;
+  fontFamily: string;
+  colors: ColorScheme;
+  autoDownload: boolean;
+}
+
+interface ColorScheme {
+  background: string;
+  text: string;
+  accent: string;
+}
+```
+
+## データモデル
+
+### プロフィールデータ
+```typescript
+interface XProfile {
+  username: string;          // @username
+  displayName: string;       // 表示名
+  profileImage: string;      // プロフィール画像URL
+  bio?: string;             // プロフィール説明
+  verified: boolean;        // 認証済みアカウント
+  followerCount?: number;   // フォロワー数
+  location?: string;        // 所在地
+}
+```
+
+### 名札テンプレート
+```typescript
+interface NameTagTemplate {
+  id: string;
+  name: string;
   dimensions: {
-    width: number;   // in points (72 points = 1 inch)
-    height: number;
+    width: number;    // mm
+    height: number;   // mm
   };
-  margins: {
-    top: number;
-    right: number;
-    bottom: number;
-    left: number;
-  };
-  fonts: {
-    displayName: FontConfig;
-    username: FontConfig;
-  };
-  colors: {
-    background: string;
-    text: string;
-    accent: string;
-  };
+  elements: TemplateElement[];
+}
+
+interface TemplateElement {
+  type: 'text' | 'image' | 'shape';
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  styling: ElementStyle;
+  content?: string;
+  dataBinding?: keyof XProfile;
 }
 ```
 
-## Error Handling
-
-### Error Categories and Responses:
-
-1. **Invalid URL Format**
-   - Validation: Regex pattern matching
-   - Response: Clear error message with format example
-   - Recovery: Allow user to correct input
-
-2. **Profile Not Found/Private**
-   - Detection: HTTP 404 or access denied responses
-   - Response: Inform user about privacy settings
-   - Recovery: Suggest public profile alternatives
-
-3. **Network/Scraping Failures**
-   - Detection: Timeout, connection errors, bot detection
-   - Response: Retry with exponential backoff
-   - Recovery: Fallback to cached data or manual input
-
-4. **Image Processing Errors**
-   - Detection: Invalid image format, download failures
-   - Response: Use default placeholder image
-   - Recovery: Continue with text-only name tag
-
-5. **PDF Generation Errors**
-   - Detection: Memory issues, font loading failures
-   - Response: Detailed error logging and user notification
-   - Recovery: Simplified layout fallback
-
-### Error Response Format:
+### エラーハンドリング
 ```typescript
-interface ErrorResponse {
-  success: false;
-  error: {
-    code: string;
-    message: string;
-    details?: any;
-    suggestions?: string[];
-  };
+interface APIError {
+  code: string;
+  message: string;
+  details?: any;
+}
+
+enum ErrorCodes {
+  PROFILE_NOT_FOUND = 'PROFILE_NOT_FOUND',
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  RATE_LIMITED = 'RATE_LIMITED',
+  PDF_GENERATION_FAILED = 'PDF_GENERATION_FAILED',
+  INVALID_URL = 'INVALID_URL'
 }
 ```
 
-## Testing Strategy
+## エラーハンドリング
 
-### Unit Testing
-- **Profile Scraper**: Mock X profile pages, test data extraction
-- **Image Processor**: Test image download, resizing, format conversion
-- **QR Code Generator**: Verify QR code content and format
-- **PDF Generator**: Validate PDF structure and content
+### エラー処理戦略
 
-### Integration Testing
-- **End-to-End Flow**: Complete workflow from URL to PDF
-- **Error Scenarios**: Test all error conditions and recovery
-- **Performance**: Load testing with multiple concurrent requests
+1. **プロフィール取得エラー**
+   - 無効なURL: ユーザーに分かりやすいエラーメッセージを表示
+   - ネットワークエラー: 再試行オプションを提供
+   - レート制限: 待機時間を表示し、自動再試行
 
-### Manual Testing
-- **Print Quality**: Physical printing tests on various paper types
-- **QR Code Scanning**: Test QR codes with different scanning apps
-- **Cross-Browser**: Verify functionality across browsers
-- **Accessibility**: Screen reader and keyboard navigation testing
+2. **PDF生成エラー**
+   - メモリ不足: バッチサイズを削減して再試行
+   - テンプレートエラー: デフォルトテンプレートにフォールバック
 
-### Test Data Strategy
-- Create mock X profiles for consistent testing
-- Use test images of various formats and sizes
-- Generate sample PDFs for visual regression testing
+3. **一括処理エラー**
+   - 部分的失敗: 成功した分のみでPDF生成を継続
+   - エラーレポート: 失敗したURLとエラー理由を表示
 
-## Security Considerations
+### エラー表示
+```typescript
+interface ErrorDisplay {
+  showError(error: APIError): void;
+  showWarning(message: string): void;
+  showRetryOption(callback: () => void): void;
+}
+```
 
-### Data Privacy
-- No persistent storage of user data
-- Temporary file cleanup after PDF generation
-- No logging of personal information
+## テスト戦略
 
-### Rate Limiting
-- Implement request throttling to avoid overwhelming X servers
-- Use respectful scraping practices with appropriate delays
-- Monitor for and handle anti-bot measures
+### 単体テスト
+- ProfileService: プロフィール取得ロジック
+- NameTagService: 名札生成ロジック
+- PDFService: PDF生成機能
+- SettingsService: 設定の保存・読み込み
 
-### Input Validation
-- Strict URL validation to prevent injection attacks
-- Sanitize all extracted data before PDF generation
-- Validate image files before processing
+### 統合テスト
+- Chrome拡張機能のポップアップ動作
+- バックグラウンドスクリプトとの連携
+- ファイルダウンロード機能
 
-## Performance Optimization
+### E2Eテスト
+- 実際のXプロフィールURLでの名札生成
+- 複数プロフィールの一括処理
+- 異なるテンプレートでの生成
 
-### Caching Strategy
-- Cache profile images temporarily during processing
-- Reuse QR codes for identical URLs within session
-- Cache fonts and PDF templates
+### テストデータ
+```typescript
+const mockProfiles: XProfile[] = [
+  {
+    username: 'testuser1',
+    displayName: 'テストユーザー1',
+    profileImage: 'data:image/png;base64,...',
+    bio: 'テスト用のプロフィールです',
+    verified: false
+  }
+];
+```
 
-### Resource Management
-- Limit concurrent scraping operations
-- Implement memory cleanup for image processing
-- Use streaming for large file operations
+## セキュリティ考慮事項
 
-### Scalability Considerations
-- Stateless design for horizontal scaling
-- Async processing for non-blocking operations
-- Resource pooling for browser instances
+### データプライバシー
+- プロフィール情報の一時的な保存のみ
+- ローカルストレージの暗号化
+- 不要なデータの自動削除
+
+### API制限
+- レート制限の遵守
+- 適切なUser-Agentの設定
+- エラー時の指数バックオフ
+
+### Chrome拡張機能セキュリティ
+- Manifest V3の使用
+- 最小権限の原則
+- Content Security Policy の適用
+
+## パフォーマンス最適化
+
+### 画像処理
+- プロフィール画像のキャッシュ
+- 画像サイズの最適化
+- 遅延読み込み
+
+### PDF生成
+- Canvas要素の再利用
+- メモリ使用量の監視
+- バッチ処理のサイズ制限
+
+### ネットワーク
+- 並列リクエストの制限
+- タイムアウト設定
+- 失敗時の再試行戦略

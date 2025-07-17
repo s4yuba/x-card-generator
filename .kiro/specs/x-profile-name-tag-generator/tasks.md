@@ -1,113 +1,172 @@
-# Implementation Plan
+# 実装計画
 
-- [x] 1. Set up project structure and dependencies
-  - Create Node.js project with TypeScript configuration
-  - Install core dependencies: puppeteer, sharp, qrcode, pdfkit, express
-  - Set up development environment with proper build scripts
-  - _Requirements: All requirements foundation_
+- [ ] 1. プロジェクト構造とコアインターフェースの設定
+  - Chrome拡張機能のディレクトリ構造を作成（popup、background、content、services、types）
+  - TypeScriptの設定とビルド環境を構築
+  - Manifest V3の基本設定ファイルを作成
+  - _要件: 5.1, 5.2_
 
-- [ ] 2. Implement URL validation and profile data extraction
-  - [ ] 2.1 Create URL validator utility
-    - Write function to validate X profile URL format using regex
-    - Handle various URL formats (x.com, twitter.com, with/without www)
-    - Create unit tests for URL validation edge cases
-    - _Requirements: 1.1, 6.1_
-  
-  - [ ] 2.2 Implement profile scraper with Puppeteer
-    - Set up headless browser configuration with proper user agent
-    - Write scraping logic to extract username and display name from profile page
-    - Implement profile image URL extraction from photo endpoint
-    - Add error handling for private profiles and network issues
-    - _Requirements: 1.1, 1.2, 6.2, 6.3_
+- [ ] 2. データモデルとバリデーションの実装
+- [ ] 2.1 コアデータモデルインターフェースと型の作成
+  - XProfile、NameTagTemplate、AppSettingsのTypeScriptインターフェースを定義
+  - データバリデーション関数を実装
+  - _要件: 1.1, 2.1_
 
-- [ ] 3. Create image processing functionality
-  - [ ] 3.1 Implement image downloader
-    - Write HTTP client to download profile images with proper headers
-    - Add timeout and retry logic for network resilience
-    - Create unit tests with mock image URLs
-    - _Requirements: 2.1, 6.3_
-  
-  - [ ] 3.2 Build image processor for name tag optimization
-    - Implement image resizing and format conversion using Sharp
-    - Add circular cropping functionality for profile images
-    - Create default placeholder image handling
-    - Write tests for various image formats and sizes
-    - _Requirements: 2.1, 2.2, 2.3_
+- [ ] 2.2 エラーハンドリング型とユーティリティの実装
+  - APIError、ErrorCodesの型定義を作成
+  - エラー表示とハンドリングのユーティリティ関数を実装
+  - _要件: 3.3_
 
-- [ ] 4. Develop QR code generation
-  - Create QR code generator function with configurable options
-  - Set optimal size and error correction level for name tag scanning
-  - Generate high-resolution PNG output for PDF embedding
-  - Write unit tests to verify QR code content and format
-  - _Requirements: 3.1, 3.2_
+- [ ] 3. プロフィール取得サービスの実装
+- [ ] 3.1 ProfileServiceの基本実装
+  - 単一プロフィール取得機能を実装
+  - XプロフィールURLの解析とバリデーション機能を作成
+  - プロフィール情報抽出のDOM解析ロジックを実装
+  - _要件: 1.1_
 
-- [ ] 5. Build PDF generation system
-  - [ ] 5.1 Create name tag layout engine
-    - Design front-side layout with profile image, display name, and username
-    - Implement proper typography and spacing for readability
-    - Add professional styling with appropriate fonts and colors
-    - _Requirements: 4.3, 5.1, 5.2, 5.3, 5.4_
-  
-  - [ ] 5.2 Implement PDF document creation
-    - Set up PDFKit with standard paper size configuration (A4/Letter)
-    - Create dual-page layout for front and back of name tag
-    - Add QR code to back page with proper positioning
-    - Ensure 300 DPI resolution for print quality
-    - _Requirements: 4.1, 4.2, 4.3, 4.4, 3.3_
+- [ ] 3.2 複数プロフィール取得機能の実装
+  - 一括プロフィール取得機能を実装
+  - エラー処理と部分的成功のハンドリングを追加
+  - レート制限とタイムアウト処理を実装
+  - _要件: 3.1, 3.3_
 
-- [ ] 6. Create web interface and API endpoints
-  - [ ] 6.1 Build Express.js server with API routes
-    - Create POST endpoint for name tag generation requests
-    - Implement file upload/download handling for PDF output
-    - Add request validation and sanitization middleware
-    - _Requirements: 1.3, 4.1_
-  
-  - [ ] 6.2 Develop frontend interface
-    - Create simple HTML form for X profile URL input
-    - Add client-side URL validation and user feedback
-    - Implement file download functionality for generated PDFs
-    - Style interface for professional appearance
-    - _Requirements: 1.3, 6.1_
+- [ ] 3.3 プロフィール取得のテスト作成
+  - ProfileServiceの単体テストを作成
+  - モックデータを使用したテストケースを実装
+  - エラーケースのテストを追加
+  - _要件: 1.1, 3.1_
 
-- [ ] 7. Implement comprehensive error handling
-  - Add try-catch blocks around all async operations
-  - Create custom error classes for different failure types
-  - Implement user-friendly error messages and recovery suggestions
-  - Add logging for debugging and monitoring
-  - _Requirements: 6.1, 6.2, 6.3, 6.4_
+- [ ] 4. 名札生成サービスの実装
+- [ ] 4.1 基本テンプレートシステムの実装
+  - デフォルト名札テンプレートを作成
+  - テンプレート要素のレンダリング機能を実装
+  - Canvas APIを使用した描画機能を実装
+  - _要件: 2.1_
 
-- [ ] 8. Add input validation and security measures
-  - Implement strict input sanitization for all user data
-  - Add rate limiting to prevent abuse of scraping functionality
-  - Ensure no persistent storage of user profile data
-  - Add CORS configuration for web security
-  - _Requirements: 6.1, 6.2_
+- [ ] 4.2 カスタマイズ機能の実装
+  - フォントサイズ変更機能を実装
+  - 色設定変更機能を実装
+  - テンプレート選択機能を実装
+  - _要件: 2.2, 2.3_
 
-- [ ] 9. Create comprehensive test suite
-  - [ ] 9.1 Write unit tests for core modules
-    - Test profile scraper with mock X profile pages
-    - Test image processor with sample images
-    - Test QR code generator output validation
-    - Test PDF generator with various input combinations
-    - _Requirements: All requirements validation_
-  
-  - [ ] 9.2 Implement integration tests
-    - Create end-to-end test for complete workflow
-    - Test error scenarios and recovery mechanisms
-    - Validate PDF output structure and content
-    - Test concurrent request handling
-    - _Requirements: All requirements end-to-end validation_
+- [ ] 4.3 名札生成サービスのテスト作成
+  - NameTagServiceの単体テストを作成
+  - 異なるテンプレートでの生成テストを実装
+  - カスタマイズ機能のテストを追加
+  - _要件: 2.1, 2.2_
 
-- [ ] 10. Optimize performance and add production features
-  - Implement caching for profile images and QR codes
-  - Add request queuing to manage concurrent scraping operations
-  - Optimize memory usage for image processing operations
-  - Add health check endpoint for monitoring
-  - _Requirements: Performance optimization for all requirements_
+- [ ] 5. PDF生成サービスの実装
+- [ ] 5.1 基本PDF生成機能の実装
+  - jsPDFを使用したPDF生成機能を実装
+  - 単一名札のPDF出力機能を作成
+  - PDF品質とサイズの最適化を実装
+  - _要件: 1.3_
 
-- [ ] 11. Create deployment configuration
-  - Write Dockerfile for containerized deployment
-  - Add environment variable configuration for different environments
-  - Create production build scripts and optimization
-  - Add process management for browser instances
-  - _Requirements: Production readiness for all features_
+- [ ] 5.2 複数名札PDF生成機能の実装
+  - 複数名札を含む単一PDFの生成機能を実装
+  - ページレイアウトと配置の最適化を実装
+  - メモリ使用量の監視と制限を追加
+  - _要件: 3.2_
+
+- [ ] 5.3 PDF生成サービスのテスト作成
+  - PDFServiceの単体テストを作成
+  - 生成されたPDFの検証テストを実装
+  - エラーケースとメモリ制限のテストを追加
+  - _要件: 1.3, 3.2_
+
+- [ ] 6. 設定管理サービスの実装
+- [ ] 6.1 設定保存・読み込み機能の実装
+  - Chrome Storage APIを使用した設定管理を実装
+  - デフォルト設定の初期化機能を作成
+  - 設定のバリデーションとマイグレーション機能を実装
+  - _要件: 2.2, 2.3_
+
+- [ ] 6.2 設定管理のテスト作成
+  - SettingsServiceの単体テストを作成
+  - 設定の保存・読み込みテストを実装
+  - バリデーションエラーのテストを追加
+  - _要件: 2.2_
+
+- [ ] 7. Chrome拡張機能UIの実装
+- [ ] 7.1 ポップアップUIの基本実装
+  - popup.htmlの基本レイアウトを作成
+  - プロフィールURL入力フィールドを実装
+  - 生成ボタンとプログレス表示を追加
+  - _要件: 5.1_
+
+- [ ] 7.2 設定パネルUIの実装
+  - 名札設定パネルのUIを作成
+  - テンプレート選択、フォント、色設定のコントロールを実装
+  - リアルタイムプレビュー機能を追加
+  - _要件: 2.1, 2.2, 2.3_
+
+- [ ] 7.3 エラー表示とユーザーフィードバックの実装
+  - エラーメッセージ表示機能を実装
+  - 成功・警告通知の表示機能を追加
+  - 再試行オプションのUIを実装
+  - _要件: 3.3, 4.3_
+
+- [ ] 8. バックグラウンドスクリプトの実装
+- [ ] 8.1 拡張機能の初期化とライフサイクル管理
+  - background.tsの基本実装を作成
+  - 拡張機能のインストール・更新処理を実装
+  - アイコンとコンテキストメニューの管理を追加
+  - _要件: 5.2_
+
+- [ ] 8.2 タブ管理とコンテンツスクリプト連携
+  - アクティブタブの情報取得機能を実装
+  - コンテンツスクリプトとの通信機能を追加
+  - 権限管理とセキュリティ制御を実装
+  - _要件: 5.3_
+
+- [ ] 9. コンテンツスクリプトの実装
+- [ ] 9.1 Xプロフィールページ検出機能
+  - 現在のページがXプロフィールページかを判定する機能を実装
+  - プロフィールURLの自動抽出機能を作成
+  - ページ情報の取得とポップアップへの送信機能を実装
+  - _要件: 5.3_
+
+- [ ] 9.2 コンテンツスクリプトのテスト作成
+  - コンテンツスクリプトの単体テストを作成
+  - ページ検出機能のテストを実装
+  - 通信機能のテストを追加
+  - _要件: 5.3_
+
+- [ ] 10. ファイルダウンロード機能の実装
+- [ ] 10.1 PDF自動ダウンロード機能
+  - PDF生成完了時の自動ダウンロード機能を実装
+  - ファイル名の自動生成機能を追加
+  - ダウンロード設定の管理機能を実装
+  - _要件: 4.1_
+
+- [ ] 10.2 手動ダウンロードとエラーハンドリング
+  - ダウンロードボタンの実装
+  - ダウンロード失敗時のエラーハンドリングを追加
+  - 再試行機能とエラー表示を実装
+  - _要件: 4.2, 4.3_
+
+- [ ] 11. 統合テストとE2Eテストの実装
+- [ ] 11.1 Chrome拡張機能の統合テスト
+  - ポップアップとバックグラウンドスクリプトの連携テストを作成
+  - コンテンツスクリプトとの通信テストを実装
+  - 設定の永続化テストを追加
+  - _要件: 5.1, 5.2, 5.3_
+
+- [ ] 11.2 エンドツーエンドテストの実装
+  - 実際のプロフィールURLを使用した名札生成テストを作成
+  - 複数プロフィールの一括処理テストを実装
+  - 異なるテンプレートでの生成テストを追加
+  - _要件: 1.1, 1.2, 1.3, 3.1, 3.2_
+
+- [ ] 12. ビルドとパッケージングの設定
+- [ ] 12.1 本番ビルド設定の実装
+  - WebpackまたはViteを使用したビルド設定を作成
+  - TypeScriptコンパイルとバンドル設定を実装
+  - Chrome拡張機能パッケージング設定を追加
+  - _要件: 5.1, 5.2_
+
+- [ ] 12.2 開発環境とデバッグ設定
+  - 開発用のホットリロード設定を実装
+  - デバッグ用のソースマップ設定を追加
+  - テスト実行環境の設定を完成
+  - _要件: 全体的な開発効率_

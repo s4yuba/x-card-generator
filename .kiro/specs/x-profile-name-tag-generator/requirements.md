@@ -1,70 +1,57 @@
-# Requirements Document
+# 要件書
 
-## Introduction
+## 概要
 
-This feature creates a tool that generates printable name tags from X (Twitter) profile information. The tool takes an X profile URL, extracts user information and profile image, and generates a PDF name tag suitable for printing. The name tag includes the user's display name, username, profile image on the front, and a QR code linking to their profile on the back.
+XのプロフィールリンクをInputすることで、首から下げる名札を印刷するためのPDFファイルを自動生成するChrome拡張機能です。この機能により、イベントや会議での名札作成を効率化し、Xプロフィール情報を活用した統一感のある名札を簡単に作成できます。
 
-## Requirements
+## 要件
 
-### Requirement 1
+### 要件1
 
-**User Story:** As a user, I want to input an X profile URL and automatically generate a name tag, so that I can quickly create professional name tags for events.
+**ユーザーストーリー:** イベント主催者として、参加者のXプロフィールリンクから名札PDFを生成したい。そうすることで、手動での名札作成作業を削減し、統一感のある名札を効率的に作成できる。
 
-#### Acceptance Criteria
+#### 受け入れ基準
 
-1. WHEN a user inputs an X profile URL in the format https://x.com/{account_id} THEN the system SHALL automatically extract the username and display name from the profile
-2. WHEN the system processes the URL THEN it SHALL retrieve the user's profile image from https://x.com/{account_id}/photo
-3. WHEN profile data is successfully retrieved THEN the system SHALL automatically generate the name tag PDF without requiring additional user input
+1. ユーザーがXプロフィールURLを入力したとき、システムはプロフィール情報を取得する
+2. プロフィール情報の取得に成功したとき、システムは名札レイアウトにデータを配置する
+3. 名札データの配置が完了したとき、システムは印刷可能なPDFファイルを生成する
 
-### Requirement 2
+### 要件2
 
-**User Story:** As a user, I want the name tag to include my profile image, so that people can visually identify me at events.
+**ユーザーストーリー:** ユーザーとして、生成される名札のレイアウトやデザインをカスタマイズしたい。そうすることで、イベントやブランドに合わせた名札を作成できる。
 
-#### Acceptance Criteria
+#### 受け入れ基準
 
-1. WHEN the system retrieves a profile image THEN it SHALL download and process the image for name tag use
-2. WHEN the profile image is unavailable or fails to load THEN the system SHALL use a default placeholder image
-3. WHEN processing the profile image THEN the system SHALL resize and optimize it for name tag display
+1. ユーザーが名札テンプレートを選択したとき、システムは選択されたテンプレートを適用する
+2. ユーザーがフォントサイズを変更したとき、システムは名札のテキストサイズを更新する
+3. ユーザーが色設定を変更したとき、システムは名札の配色を更新する
 
-### Requirement 3
+### 要件3
 
-**User Story:** As a user, I want a QR code on the back of my name tag, so that people can easily access my X profile.
+**ユーザーストーリー:** ユーザーとして、複数のXプロフィールから一括で名札を生成したい。そうすることで、大規模イベントでの名札作成作業を効率化できる。
 
-#### Acceptance Criteria
+#### 受け入れ基準
 
-1. WHEN generating the name tag THEN the system SHALL create a QR code containing the original X profile URL
-2. WHEN the QR code is generated THEN it SHALL be sized appropriately for scanning from a reasonable distance
-3. WHEN the QR code is placed on the name tag THEN it SHALL be positioned on the back side of the name tag
+1. ユーザーが複数のXプロフィールURLを入力したとき、システムは各プロフィール情報を順次取得する
+2. 全てのプロフィール情報の取得が完了したとき、システムは複数の名札を含む単一のPDFファイルを生成する
+3. 一部のプロフィール取得に失敗したとき、システムはエラー情報を表示し、成功した分のみでPDF生成を継続する
 
-### Requirement 4
+### 要件4
 
-**User Story:** As a user, I want to receive a printable PDF, so that I can print the name tag on standard paper or card stock.
+**ユーザーストーリー:** ユーザーとして、生成されたPDFファイルを簡単にダウンロードしたい。そうすることで、すぐに印刷作業に移ることができる。
 
-#### Acceptance Criteria
+#### 受け入れ基準
 
-1. WHEN the name tag is generated THEN the system SHALL output a PDF file suitable for printing
-2. WHEN the PDF is created THEN it SHALL be formatted for standard paper sizes (A4 or Letter)
-3. WHEN the PDF contains the name tag THEN it SHALL include both front and back designs on separate pages or as a foldable layout
-4. WHEN the PDF is generated THEN it SHALL maintain high resolution for clear printing of text and images
+1. PDF生成が完了したとき、システムは自動的にダウンロードを開始する
+2. ユーザーがダウンロードボタンをクリックしたとき、システムはPDFファイルをダウンロードする
+3. ダウンロードに失敗したとき、システムはエラーメッセージを表示し、再試行オプションを提供する
 
-### Requirement 5
+### 要件5
 
-**User Story:** As a user, I want the name tag to display my information clearly, so that it's readable and professional-looking.
+**ユーザーストーリー:** ユーザーとして、Chrome拡張機能として簡単にアクセスしたい。そうすることで、ブラウザから直接名札生成機能を利用できる。
 
-#### Acceptance Criteria
+#### 受け入れ基準
 
-1. WHEN displaying the username THEN the system SHALL show it in the format @{username}
-2. WHEN displaying the display name THEN it SHALL be prominently featured as the primary identifier
-3. WHEN laying out the name tag front THEN it SHALL include the profile image, display name, and username in a clear, readable format
-4. WHEN designing the name tag THEN it SHALL use appropriate fonts, sizing, and spacing for professional appearance
-
-### Requirement 6
-
-**User Story:** As a user, I want the tool to handle errors gracefully, so that I receive helpful feedback when something goes wrong.
-
-#### Acceptance Criteria
-
-1. WHEN an invalid X profile URL is provided THEN the system SHALL return a clear error message
-2. WHEN a profile is private or inaccessible THEN the system SHALL inform the user and suggest alternatives
-3. WHEN network issues prevent data retrieval THEN the system SHALL provide retry options or fallback behavior
-4. WHEN PDF generation fails THEN the system SHALL report the specific error and suggest solutions
+1. ユーザーがChrome拡張機能のアイコンをクリックしたとき、システムは拡張機能のポップアップを表示する
+2. 拡張機能がインストールされたとき、システムはブラウザのツールバーにアイコンを追加する
+3. ユーザーがXのプロフィールページを閲覧中のとき、システムは現在のページのURLを自動入力オプションを提供する
