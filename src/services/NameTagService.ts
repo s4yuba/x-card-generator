@@ -174,10 +174,52 @@ export class NameTagService {
     }
 
     try {
-      // In a real implementation, you would fetch the image from the URL
-      // For now, we'll return null to indicate no avatar processing
-      // TODO: Implement actual image fetching and processing
-      return null;
+      // Validate URL
+      const url = new URL(avatarUrl);
+      
+      // Security check: Only allow HTTPS URLs from trusted domains
+      if (url.protocol !== 'https:') {
+        throw new Error('Only HTTPS URLs are allowed for avatar images');
+      }
+      
+      // Whitelist of allowed image domains (Twitter/X CDNs)
+      const allowedDomains = ['pbs.twimg.com', 'abs.twimg.com'];
+      if (!allowedDomains.includes(url.hostname)) {
+        throw new Error(`Avatar domain not allowed: ${url.hostname}`);
+      }
+
+      // Fetch the image with timeout
+      const response = await fetch(avatarUrl, {
+        signal: AbortSignal.timeout(5000), // 5 second timeout
+        headers: {
+          'User-Agent': 'X-Card-Generator/1.0'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch avatar: ${response.status}`);
+      }
+
+      // Validate content type
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.startsWith('image/')) {
+        throw new Error('Invalid content type for avatar image');
+      }
+
+      // Get image buffer
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      // Process and resize the image
+      const processedAvatar = await sharp(buffer)
+        .resize(template.dimensions.avatarSize, template.dimensions.avatarSize, {
+          fit: 'cover',
+          position: 'centre'
+        })
+        .png()
+        .toBuffer();
+
+      return processedAvatar;
     } catch (error) {
       // If avatar processing fails, we continue without the avatar
       console.warn('Failed to process avatar image:', error);
@@ -228,12 +270,48 @@ export class NameTagService {
 
   /**
    * Truncate text with ellipsis if it's too long
+   * Considers full-width characters for accurate text width calculation
    */
   private truncateText(text: string, maxLength: number): string {
     if (text.length <= maxLength) {
       return text;
     }
     
-    return text.substring(0, maxLength - 3) + '...';
+    // Calculate the visual width of text (full-width chars count as 2)
+    const getVisualLength = (str: string): number => {
+      let length = 0;
+      for (const char of str) {
+        // Check if character is full-width (CJK, etc.)
+        const code = char.charCodeAt(0);
+        if ((code >= 0x1100 && code <= 0x115F) || // Hangul Jamo
+            (code >= 0x2E80 && code <= 0x9FFF) || // CJK
+            (code >= 0xAC00 && code <= 0xD7AF) || // Hangul Syllables
+            (code >= 0xF900 && code <= 0xFAFF) || // CJK Compatibility
+            (code >= 0xFE30 && code <= 0xFE4F) || // CJK Compatibility Forms
+            (code >= 0xFF00 && code <= 0xFF60) || // Fullwidth Forms
+            (code >= 0xFFE0 && code <= 0xFFE6)) { // Fullwidth Forms
+          length += 2;
+        } else {
+          length += 1;
+        }
+      }
+      return length;
+    };
+    
+    // Find the cutoff point considering visual width
+    let visualLength = 0;
+    let cutoffIndex = 0;
+    const ellipsisLength = 3; // "..." takes 3 visual units
+    
+    for (let i = 0; i < text.length; i++) {
+      const charVisualLength = getVisualLength(text[i]);
+      if (visualLength + charVisualLength + ellipsisLength > maxLength) {
+        break;
+      }
+      visualLength += charVisualLength;
+      cutoffIndex = i + 1;
+    }
+    
+    return text.substring(0, cutoffIndex) + '...';
   }
 }

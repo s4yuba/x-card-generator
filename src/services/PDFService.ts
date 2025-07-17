@@ -1,4 +1,7 @@
 import PDFDocument from 'pdfkit';
+
+// Type definition for PDFKit document
+type PDFDocumentInstance = InstanceType<typeof PDFDocument>;
 import { Readable } from 'stream';
 import { XProfile, NameTagTemplate } from '../types';
 import { NameTagService } from './NameTagService';
@@ -144,8 +147,8 @@ export class PDFService {
    * Convert PDF document to buffer
    */
   private async convertPDFToBuffer(
-    doc: any,
-    contentCallback: (doc: any) => Promise<void>
+    doc: PDFDocumentInstance,
+    contentCallback: (doc: PDFDocumentInstance) => Promise<void>
   ): Promise<Buffer> {
     return new Promise(async (resolve, reject) => {
       const buffers: Buffer[] = [];
@@ -238,8 +241,23 @@ export class PDFService {
    * Estimate memory usage for PDF generation
    */
   private estimateMemoryUsage(pdfSize: number, nameTagCount: number): number {
-    // Rough estimation: PDF size + name tag images + processing overhead
-    return pdfSize + (nameTagCount * 100000) + 1024000; // 1MB overhead
+    // More accurate estimation based on typical resource usage:
+    // - Each name tag image: ~50-200KB depending on complexity
+    // - PDF structure overhead: ~10KB per page
+    // - Image compression in PDF: reduces size by ~30%
+    // - Processing buffers: ~2x the raw image size during generation
+    
+    const avgNameTagSize = 150 * 1024; // 150KB average per name tag
+    const pdfOverheadPerPage = 10 * 1024; // 10KB per page
+    const compressionRatio = 0.7; // 30% compression
+    const processingMultiplier = 2; // 2x memory during processing
+    
+    const totalImageSize = nameTagCount * avgNameTagSize;
+    const pdfStructureSize = Math.ceil(nameTagCount / 6) * pdfOverheadPerPage; // 6 tags per page
+    const compressedSize = totalImageSize * compressionRatio;
+    const processingOverhead = compressedSize * processingMultiplier;
+    
+    return Math.ceil(pdfSize + compressedSize + pdfStructureSize + processingOverhead);
   }
 
   /**

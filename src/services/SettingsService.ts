@@ -239,7 +239,7 @@ export class SettingsService {
   /**
    * Merge saved settings with defaults
    */
-  private mergeWithDefaults(savedSettings: any): AppSettings {
+  private mergeWithDefaults(savedSettings: Partial<AppSettings>): AppSettings {
     return {
       ...this.defaultSettings,
       ...savedSettings
