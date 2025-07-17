@@ -1,6 +1,6 @@
 # 実装計画
 
-- [ ] 1. プロジェクト構造とコアインターフェースの設定
+- [x] 1. プロジェクト構造とコアインターフェースの設定
   - Chrome拡張機能のディレクトリ構造を作成（popup、background、content、services、types）
   - TypeScriptの設定とビルド環境を構築
   - Manifest V3の基本設定ファイルを作成
