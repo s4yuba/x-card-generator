@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Name Tag Settings</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div class="container">
+    <div class="settings-header">
+      <button id="back-btn" class="back-btn">← Back</button>
+      <h1>Name Tag Settings</h1>
+    </div>
+
+    <div class="settings-content">
+      <!-- Template Selection -->
+      <div class="settings-section">
+        <h2>Template</h2>
+        <div class="template-grid">
+          <div class="template-option" data-template="default">
+            <div class="template-preview default-template"></div>
+            <span>Default</span>
+          </div>
+          <div class="template-option" data-template="minimal">
+            <div class="template-preview minimal-template"></div>
+            <span>Minimal</span>
+          </div>
+          <div class="template-option" data-template="colorful">
+            <div class="template-preview colorful-template"></div>
+            <span>Colorful</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Font Settings -->
+      <div class="settings-section">
+        <h2>Font Settings</h2>
+        <div class="setting-group">
+          <label for="font-family">Font Family</label>
+          <select id="font-family">
+            <option value="Arial">Arial</option>
+            <option value="Helvetica">Helvetica</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Times New Roman">Times New Roman</option>
+          </select>
+        </div>
+        <div class="setting-group">
+          <label for="name-font-size">Name Font Size</label>
+          <input type="range" id="name-font-size" min="18" max="36" value="24" aria-describedby="name-font-size-value">
+          <span id="name-font-size-value">24px</span>
+        </div>
+        <div class="setting-group">
+          <label for="username-font-size">Username Font Size</label>
+          <input type="range" id="username-font-size" min="14" max="24" value="18" aria-describedby="username-font-size-value">
+          <span id="username-font-size-value">18px</span>
+        </div>
+      </div>
+
+      <!-- Color Settings -->
+      <div class="settings-section">
+        <h2>Color Settings</h2>
+        <div class="setting-group">
+          <label for="bg-color">Background Color</label>
+          <div class="color-input-group">
+            <input type="color" id="bg-color" value="#ffffff">
+            <input type="text" id="bg-color-text" value="#ffffff" maxlength="7" pattern="^#[0-9A-Fa-f]{6}$" title="Enter a valid hex color (e.g., #ffffff)">
+          </div>
+        </div>
+        <div class="setting-group">
+          <label for="text-color">Text Color</label>
+          <div class="color-input-group">
+            <input type="color" id="text-color" value="#000000">
+            <input type="text" id="text-color-text" value="#000000" maxlength="7" pattern="^#[0-9A-Fa-f]{6}$" title="Enter a valid hex color (e.g., #000000)">
+          </div>
+        </div>
+        <div class="setting-group">
+          <label for="accent-color">Accent Color</label>
+          <div class="color-input-group">
+            <input type="color" id="accent-color" value="#1da1f2">
+            <input type="text" id="accent-color-text" value="#1da1f2" maxlength="7" pattern="^#[0-9A-Fa-f]{6}$" title="Enter a valid hex color (e.g., #1da1f2)">
+          </div>
+        </div>
+      </div>
+
+      <!-- General Settings -->
+      <div class="settings-section">
+        <h2>General Settings</h2>
+        <div class="setting-group">
+          <label>
+            <input type="checkbox" id="auto-download" checked>
+            Auto-download generated PDFs
+          </label>
+        </div>
+        <div class="setting-group">
+          <label for="pdf-quality">PDF Quality</label>
+          <select id="pdf-quality">
+            <option value="low">Low (Smaller file size)</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High (Larger file size)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div class="settings-section">
+        <h2>Preview</h2>
+        <div id="preview-canvas-container" class="preview-canvas-container">
+          <canvas id="preview-canvas" role="img" aria-label="Name tag preview"></canvas>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="settings-actions">
+        <button id="reset-btn" class="secondary-btn">Reset to Default</button>
+        <button id="save-btn" class="primary-btn">Save Settings</button>
+      </div>
+    </div>
+  </div>
+  <script src="settings.js"></script>
+</body>
+</html>
