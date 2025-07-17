@@ -47,10 +47,14 @@ class ContentScript {
 
   private setupMessageListener(): void {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      console.log('[Content] Received message:', request);
       if (request.action === 'extractProfileInfo') {
+        console.log('[Content] Extracting profile info...');
         this.extractProfileInfo().then(profile => {
+          console.log('[Content] Profile extracted:', profile);
           sendResponse({ success: true, data: profile });
         }).catch(error => {
+          console.error('[Content] Error extracting profile:', error);
           sendResponse({ success: false, error: error.message });
         });
         return true; // Keep message channel open for async response

@@ -143,6 +143,7 @@ class BackgroundScript {
           break;
 
         case 'fetchProfileData':
+          console.log('[Background] Received fetchProfileData request:', request.url);
           await this.handleProfileFetch(request.url, sendResponse);
           break;
 
@@ -167,9 +168,11 @@ class BackgroundScript {
 
   private async handleProfileFetch(url: string, sendResponse: (response: any) => void): Promise<void> {
     try {
+      console.log('[Background] Handling profile fetch for:', url);
       // Check if we already have a tab with this URL
       const tabs = await chrome.tabs.query({ url: url });
       let tab = tabs[0];
+      console.log('[Background] Found existing tab:', tab);
       
       if (!tab) {
         // Open new tab if not found
@@ -193,10 +196,13 @@ class BackgroundScript {
       }
       
       // Send message to content script to extract profile data
+      console.log('[Background] Sending message to content script in tab:', tab.id);
       chrome.tabs.sendMessage(tab.id, { action: 'extractProfileInfo' }, (response) => {
         if (chrome.runtime.lastError) {
+          console.error('[Background] Error sending to content script:', chrome.runtime.lastError);
           sendResponse({ success: false, error: chrome.runtime.lastError.message });
         } else {
+          console.log('[Background] Received response from content script:', response);
           sendResponse(response);
         }
       });

@@ -69,7 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       // Fetch profile data
+      console.log('[Popup] Fetching profile for URL:', profileUrl);
       const result = await profileService.fetchProfile(profileUrl);
+      console.log('[Popup] Profile fetch result:', result);
       
       if (result.success && result.data) {
         const profile = result.data.profile;
@@ -81,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Generate name tag
         await generateNameTag(profile);
       } else if (result.error) {
+        console.error('[Popup] Profile fetch error:', result.error);
         showError(result.error);
       }
     } catch (error) {
@@ -91,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         recoverable: true,
         details: error
       });
-      console.error('Error fetching profile:', error);
+      console.error('[Popup] Error fetching profile:', error);
     } finally {
       generateBtn.disabled = false;
     }
