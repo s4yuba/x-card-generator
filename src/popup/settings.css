@@ -1,0 +1,209 @@
+/* Settings specific styles */
+.settings-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 15px;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #1da1f2;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 5px 10px;
+  margin-right: 10px;
+}
+
+.back-btn:hover {
+  text-decoration: underline;
+}
+
+.settings-header h1 {
+  margin: 0;
+  flex: 1;
+}
+
+.settings-content {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.settings-section {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.settings-section:last-child {
+  border-bottom: none;
+}
+
+.settings-section h2 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+/* Template Grid */
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.template-option {
+  text-align: center;
+  cursor: pointer;
+  padding: 10px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.template-option:hover {
+  background-color: #f8f8f8;
+}
+
+.template-option.selected {
+  border-color: #1da1f2;
+  background-color: #e8f4fd;
+}
+
+.template-preview {
+  width: 100%;
+  height: 60px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  margin-bottom: 5px;
+}
+
+.default-template {
+  background: linear-gradient(to bottom, #fff 40%, #f0f0f0 40%);
+}
+
+.minimal-template {
+  background: #ffffff;
+  border: 2px solid #333;
+}
+
+.colorful-template {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Setting Groups */
+.setting-group {
+  margin-bottom: 15px;
+}
+
+.setting-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #555;
+}
+
+.setting-group select,
+.setting-group input[type="text"] {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.setting-group input[type="range"] {
+  width: calc(100% - 60px);
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+.setting-group span {
+  font-size: 14px;
+  color: #666;
+}
+
+/* Color Input Group */
+.color-input-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.color-input-group input[type="color"] {
+  width: 50px;
+  height: 36px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.color-input-group input[type="text"] {
+  flex: 1;
+  font-family: monospace;
+}
+
+/* Checkbox styling */
+.setting-group input[type="checkbox"] {
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}
+
+.setting-group label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+/* Preview Canvas */
+.preview-canvas-container {
+  background-color: #f8f8f8;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#preview-canvas {
+  max-width: 100%;
+  height: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Settings Actions */
+.settings-actions {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.settings-actions .secondary-btn {
+  margin-right: 0;
+}
+
+/* Scrollbar styling */
+.settings-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.settings-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.settings-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.settings-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

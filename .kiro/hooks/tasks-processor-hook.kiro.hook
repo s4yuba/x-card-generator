@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Tasks Processor",
+  "description": "Monitors tasks.md files for \"Start tasks\" or \"Retry\" triggers and automatically invokes Claude Code to process the tasks following a structured workflow",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "**/tasks.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "* Important: Kiro won't implement. Claude Code will do.\n\nWhen \"Start tasks\" or \"Retry\" is detected in a tasks.md file, invoke Claude Code with terminal shell command\n\n```sh\n `claude`\n```\n\n and pass the following instruction. The $ARGUMENTS should be the path to the tasks.md file that triggered this hook.\n\n---\n# Process Tasks, $ARGUMENTS : path of `tasks.md`\n\n## Procedure (follow strictly)\n- step0: check $ARGUMENTS (`tasks.md`)\n- step1: create new branch (if you are in main)\n- step2: find uncompleted task\n- step3: divide tasks into PR size\n- step4: process tasks, commit properly\n- step5: make uncompleted task checked in `tasks.md`\n- step6: continue until the tasks till PR is ready (don't create PR)"
+  }
+}
