@@ -62,7 +62,11 @@ class BackgroundScript {
           fontSize: 16,
           primaryColor: '#1DA1F2',
           backgroundColor: '#FFFFFF',
-          autoDownload: true
+          autoDownload: true,
+          downloadFormat: 'pdf',
+          pdfQuality: 'medium',
+          recentProfiles: [],
+          maxRecentProfiles: 10
         });
       }
     } catch (error) {
@@ -96,10 +100,9 @@ class BackgroundScript {
   private updateIcon(): void {
     chrome.action.setIcon({
       path: {
-        '16': 'icons/icon16.png',
-        '32': 'icons/icon32.png',
-        '48': 'icons/icon48.png',
-        '128': 'icons/icon128.png'
+        '16': 'icons/icon-16.png',
+        '48': 'icons/icon-48.png',
+        '128': 'icons/icon-128.png'
       }
     });
   }
@@ -174,7 +177,7 @@ class BackgroundScript {
         
         // Wait for tab to load
         await new Promise<void>((resolve) => {
-          const listener = (tabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
+          const listener = (tabId: number, changeInfo: any) => {
             if (tabId === tab!.id && changeInfo.status === 'complete') {
               chrome.tabs.onUpdated.removeListener(listener);
               resolve();
@@ -204,16 +207,11 @@ class BackgroundScript {
   }
 
   private updateIconForTab(tabId: number, isProfilePage: boolean): void {
-    const iconPath = isProfilePage ? {
-      '16': 'icons/icon16-active.png',
-      '32': 'icons/icon32-active.png',
-      '48': 'icons/icon48-active.png',
-      '128': 'icons/icon128-active.png'
-    } : {
-      '16': 'icons/icon16.png',
-      '32': 'icons/icon32.png',
-      '48': 'icons/icon48.png',
-      '128': 'icons/icon128.png'
+    // For now, use the same icons for both states since we don't have active variants
+    const iconPath = {
+      '16': 'icons/icon-16.png',
+      '48': 'icons/icon-48.png',
+      '128': 'icons/icon-128.png'
     };
     
     chrome.action.setIcon({ tabId, path: iconPath });
@@ -249,16 +247,10 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   const isXSite = tab.url && (tab.url.includes('x.com') || tab.url.includes('twitter.com'));
   
   chrome.action.setIcon({
-    path: isXSite ? {
-      '16': 'icons/icon16-active.png',
-      '32': 'icons/icon32-active.png',
-      '48': 'icons/icon48-active.png',
-      '128': 'icons/icon128-active.png'
-    } : {
-      '16': 'icons/icon16.png',
-      '32': 'icons/icon32.png',
-      '48': 'icons/icon48.png',
-      '128': 'icons/icon128.png'
+    path: {
+      '16': 'icons/icon-16.png',
+      '48': 'icons/icon-48.png',
+      '128': 'icons/icon-128.png'
     }
   });
 });

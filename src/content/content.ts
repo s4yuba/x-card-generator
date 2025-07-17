@@ -92,10 +92,11 @@ class ContentScript {
       displayName: displayName || username,
       bio: bio || '',
       avatarUrl: avatarUrl || '',
-      followersCount,
-      followingCount,
+      followerCount: followersCount.toString(),
+      followingCount: followingCount.toString(),
       verified,
-      profileUrl: window.location.href
+      profileUrl: window.location.href,
+      extractedAt: new Date()
     };
   }
 
