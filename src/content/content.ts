@@ -7,16 +7,33 @@ function isXProfilePage(): boolean {
   return profileUrlPattern.test(url);
 }
 
+// Wait for element with retry
+async function waitForElement(selector: string, timeout: number = 5000): Promise<Element | null> {
+  const startTime = Date.now();
+  
+  while (Date.now() - startTime < timeout) {
+    const element = document.querySelector(selector);
+    if (element) {
+      return element;
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
+  return null;
+}
+
 // Extract profile information from the page
-function extractProfileInfo() {
+async function extractProfileInfo() {
   const profileInfo = {
     username: '',
     displayName: '',
     bio: '',
     avatarUrl: '',
+    profileUrl: window.location.href,
     verified: false,
     followerCount: '',
-    followingCount: ''
+    followingCount: '',
+    extractedAt: new Date().toISOString()
   };
 
   try {
@@ -24,38 +41,100 @@ function extractProfileInfo() {
     const urlParts = window.location.pathname.split('/');
     profileInfo.username = urlParts[1] || '';
 
-    // Extract display name
-    const displayNameElement = document.querySelector('[data-testid="UserName"] span');
-    if (displayNameElement) {
-      profileInfo.displayName = displayNameElement.textContent || '';
+    // Wait for profile to load
+    await waitForElement('[data-testid="UserName"]');
+
+    // Extract display name - try multiple selectors
+    const displayNameSelectors = [
+      '[data-testid="UserName"] > div > div > div > span',
+      '[data-testid="UserName"] span:first-child',
+      'div[dir="ltr"] > span[style*="font-weight"]'
+    ];
+    
+    for (const selector of displayNameSelectors) {
+      const element = document.querySelector(selector);
+      if (element?.textContent) {
+        profileInfo.displayName = element.textContent.trim();
+        break;
+      }
     }
 
-    // Extract bio
-    const bioElement = document.querySelector('[data-testid="UserDescription"]');
-    if (bioElement) {
-      profileInfo.bio = bioElement.textContent || '';
+    // Extract bio - try multiple selectors
+    const bioSelectors = [
+      '[data-testid="UserDescription"]',
+      'div[dir="auto"][data-testid="UserDescription"]',
+      'div[data-testid="UserProfileHeader_Items"] + div[dir="auto"]'
+    ];
+    
+    for (const selector of bioSelectors) {
+      const element = document.querySelector(selector);
+      if (element?.textContent) {
+        profileInfo.bio = element.textContent.trim();
+        break;
+      }
     }
 
-    // Extract avatar URL
-    const avatarElement = document.querySelector('[data-testid="UserAvatar-Container-unknown"] img') as HTMLImageElement;
-    if (avatarElement) {
-      profileInfo.avatarUrl = avatarElement.src || '';
+    // Extract avatar URL - try multiple selectors
+    const avatarSelectors = [
+      'img[alt*="avatar"]',
+      'img[alt*="profile"]',
+      'a[href$="/photo"] img',
+      'div[data-testid="UserAvatar-Container-unknown"] img',
+      'div[style*="background-image"][role="presentation"]'
+    ];
+    
+    for (const selector of avatarSelectors) {
+      const element = document.querySelector(selector);
+      if (element) {
+        if (element instanceof HTMLImageElement && element.src) {
+          // Get higher resolution version
+          profileInfo.avatarUrl = element.src.replace(/_normal\.|_200x200\.|_400x400\./, '.');
+          break;
+        } else if (element instanceof HTMLDivElement) {
+          const bgImage = window.getComputedStyle(element).backgroundImage;
+          const match = bgImage.match(/url\("(.+?)"\)/);
+          if (match && match[1]) {
+            profileInfo.avatarUrl = match[1].replace(/_normal\.|_200x200\.|_400x400\./, '.');
+            break;
+          }
+        }
+      }
     }
 
-    // Check verification status
-    const verifiedBadge = document.querySelector('[aria-label="Verified account"]');
-    profileInfo.verified = !!verifiedBadge;
+    // Check verification status - try multiple selectors
+    const verifiedSelectors = [
+      '[aria-label="Verified account"]',
+      'svg[aria-label*="Verified"]',
+      '[data-testid="icon-verified"]',
+      'svg[class*="verified"]'
+    ];
+    
+    profileInfo.verified = verifiedSelectors.some(selector => !!document.querySelector(selector));
 
-    // Extract follower count
-    const followerLink = document.querySelector('a[href$="/followers"] span');
-    if (followerLink) {
-      profileInfo.followerCount = followerLink.textContent || '';
-    }
+    // Extract follower/following counts
+    const statsLinks = document.querySelectorAll('a[href$="/verified_followers"], a[href$="/followers"], a[href$="/following"]');
+    
+    statsLinks.forEach(link => {
+      const href = link.getAttribute('href') || '';
+      const text = link.textContent || '';
+      
+      if (href.includes('/followers')) {
+        // Extract number from text like "1.2K Followers"
+        const match = text.match(/([0-9,.]+[KMB]?)/);
+        if (match) {
+          profileInfo.followerCount = match[1];
+        }
+      } else if (href.includes('/following')) {
+        const match = text.match(/([0-9,.]+[KMB]?)/);
+        if (match) {
+          profileInfo.followingCount = match[1];
+        }
+      }
+    });
 
-    // Extract following count
-    const followingLink = document.querySelector('a[href$="/following"] span');
-    if (followingLink) {
-      profileInfo.followingCount = followingLink.textContent || '';
+    // If display name is still empty, use username
+    if (!profileInfo.displayName && profileInfo.username) {
+      profileInfo.displayName = profileInfo.username;
     }
   } catch (error) {
     console.error('Error extracting profile info:', error);
@@ -70,8 +149,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ isProfilePage: isXProfilePage() });
   } else if (request.action === 'extractProfileInfo') {
     if (isXProfilePage()) {
-      const profileInfo = extractProfileInfo();
-      sendResponse({ success: true, data: profileInfo });
+      extractProfileInfo().then(profileInfo => {
+        sendResponse({ success: true, data: profileInfo });
+      }).catch(error => {
+        sendResponse({ success: false, error: error.message });
+      });
     } else {
       sendResponse({ success: false, error: 'Not on a profile page' });
     }
