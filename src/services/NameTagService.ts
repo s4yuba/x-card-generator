@@ -212,7 +212,7 @@ export class NameTagService {
 
       // Process and resize the image
       const processedAvatar = await sharp(buffer)
-        .resize(template.dimensions.avatarSize, template.dimensions.avatarSize, {
+        .resize(template.layout.avatarSize, template.layout.avatarSize, {
           fit: 'cover',
           position: 'centre'
         })
