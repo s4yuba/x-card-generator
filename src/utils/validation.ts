@@ -7,6 +7,11 @@ export function isValidXProfileUrl(url: string): boolean {
     const hostname = urlObj.hostname.toLowerCase();
     const pathname = urlObj.pathname;
     
+    // Only allow HTTPS for security
+    if (urlObj.protocol !== 'https:') {
+      return false;
+    }
+    
     // Check if it's X.com or Twitter.com
     if (hostname !== 'x.com' && hostname !== 'twitter.com' && hostname !== 'www.x.com' && hostname !== 'www.twitter.com') {
       return false;
@@ -31,6 +36,10 @@ export function isValidXProfileUrl(url: string): boolean {
 }
 
 export function extractUsernameFromUrl(url: string): string | null {
+  if (!isValidXProfileUrl(url)) {
+    return null;
+  }
+
   try {
     const urlObj = new URL(url);
     const pathParts = urlObj.pathname.split('/').filter(part => part.length > 0);

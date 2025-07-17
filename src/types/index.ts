@@ -25,7 +25,7 @@ export interface QRCodeOptions {
 }
 
 export interface NameTagData {
-  profileData: ProfileData;
+  profileData: XProfile;
   profileImage: ProcessedImage;
   qrCode: Buffer;
 }

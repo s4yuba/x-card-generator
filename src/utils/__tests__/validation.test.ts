@@ -15,7 +15,7 @@ describe('Validation Utils', () => {
       expect(isValidXProfileUrl('https://x.com/user_name')).toBe(true);
       expect(isValidXProfileUrl('https://x.com/user123')).toBe(true);
       expect(isValidXProfileUrl('https://www.x.com/username')).toBe(true);
-      expect(isValidXProfileUrl('http://x.com/username')).toBe(true);
+      expect(isValidXProfileUrl('http://x.com/username')).toBe(false);
     });
 
     it('should validate correct Twitter.com URLs', () => {

@@ -3,7 +3,7 @@
 // Check if current page is an X profile page
 function isXProfilePage(): boolean {
   const url = window.location.href;
-  const profileUrlPattern = /^https?:\/\/(www\.)?(x\.com|twitter\.com)\/[^/]+\/?$/;
+  const profileUrlPattern = /^https:\/\/(www\.)?(x\.com|twitter\.com)\/[^/]+\/?$/;
   return profileUrlPattern.test(url);
 }
 
@@ -93,7 +93,7 @@ async function extractProfileInfo() {
         } else if (element instanceof HTMLDivElement) {
           const bgImage = window.getComputedStyle(element).backgroundImage;
           const match = bgImage.match(/url\("(.+?)"\)/);
-          if (match && match[1]) {
+          if (match?.[1]) {
             profileInfo.avatarUrl = match[1].replace(/_normal\.|_200x200\.|_400x400\./, '.');
             break;
           }

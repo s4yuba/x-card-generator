@@ -1,16 +1,14 @@
 // Background script for X Profile Name Tag Generator
+import { validateAppSettings } from '../utils/validation';
 
 // Listen for extension installation
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     console.log('X Profile Name Tag Generator installed');
     // Set default settings
+    const defaultSettings = validateAppSettings({});
     chrome.storage.sync.set({
-      settings: {
-        autoDownload: true,
-        pdfQuality: 'high',
-        defaultTemplate: 'standard'
-      }
+      settings: defaultSettings
     });
   } else if (details.reason === 'update') {
     console.log('X Profile Name Tag Generator updated');
@@ -33,7 +31,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 // Handle profile data fetching
-async function handleProfileFetch(url: string, sendResponse: Function) {
+async function handleProfileFetch(url: string, sendResponse: (response: any) => void) {
   try {
     // Create a new tab or find existing tab with the URL
     const tabs = await chrome.tabs.query({ url: url });
@@ -55,8 +53,13 @@ async function handleProfileFetch(url: string, sendResponse: Function) {
       });
     }
     
+    if (!tab.id) {
+      sendResponse({ success: false, error: 'Tab ID not available' });
+      return;
+    }
+    
     // Send message to content script to extract profile data
-    chrome.tabs.sendMessage(tab.id!, { action: 'extractProfileInfo' }, (response) => {
+    chrome.tabs.sendMessage(tab.id, { action: 'extractProfileInfo' }, (response) => {
       if (chrome.runtime.lastError) {
         sendResponse({ success: false, error: chrome.runtime.lastError.message });
       } else {
