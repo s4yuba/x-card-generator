@@ -9,3 +9,5 @@
 - Step 4: Process the tasks and commit properly.
 - Step 5: Mark the completed task as checked in `tasks.md`.
 - Step 6: Continue until the tasks PR is ready (do not create the PR).
+
+ultrathink plz
