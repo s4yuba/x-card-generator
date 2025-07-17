@@ -12,10 +12,20 @@
     <div class="input-section">
       <label for="profile-url">Profile URL:</label>
       <input type="text" id="profile-url" placeholder="https://x.com/username">
-      <button id="generate-btn">Generate Name Tag</button>
+      <button id="generate-btn" class="primary-btn">Generate Name Tag</button>
     </div>
     <div id="status" class="status"></div>
+    <div id="progress-section" class="progress-section" style="display: none;">
+      <div class="progress-bar">
+        <div id="progress-bar-fill" class="progress-bar-fill"></div>
+      </div>
+      <div id="progress-text" class="progress-text">Loading...</div>
+    </div>
     <div id="preview" class="preview"></div>
+    <div id="actions-section" class="actions-section" style="display: none;">
+      <button id="download-btn" class="secondary-btn">Download PDF</button>
+      <button id="settings-btn" class="secondary-btn">Settings</button>
+    </div>
   </div>
   <script src="popup.js"></script>
 </body>
