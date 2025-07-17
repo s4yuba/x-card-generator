@@ -25,7 +25,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === 'generateNameTag') {
     // TODO: Implement name tag generation logic
     sendResponse({ success: true, data: {} });
-  } else if (request.action === 'onProfilePage' && sender.tab) {
+  } else if (request.action === 'onProfilePage' && sender.tab?.id) {
     // Content script notifying that it's on a profile page
     updateIconForTab(sender.tab.id, true);
   }
@@ -45,7 +45,7 @@ async function handleProfileFetch(url: string, sendResponse: Function) {
       
       // Wait for tab to load
       await new Promise<void>((resolve) => {
-        const listener = (tabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
+        const listener = (tabId: number, changeInfo: any) => {
           if (tabId === tab.id && changeInfo.status === 'complete') {
             chrome.tabs.onUpdated.removeListener(listener);
             resolve();
