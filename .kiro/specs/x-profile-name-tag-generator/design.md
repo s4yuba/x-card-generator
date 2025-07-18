@@ -131,18 +131,10 @@ interface NameTagService {
   generateMultipleNameTags(profiles: XProfile[], template: NameTagTemplate): Promise<NameTagData[]>;
 }
 
-interface NameTagTemplate {
-  id: string;
-  name: string;
-  width: number;
-  height: number;
-  layout: LayoutConfig;
-  styling: StyleConfig;
-}
-
 interface NameTagData {
   profile: XProfile;
-  canvas: HTMLCanvasElement;
+  frontCanvas: HTMLCanvasElement;
+  backCanvas: HTMLCanvasElement;
   template: NameTagTemplate;
 }
 ```
@@ -151,8 +143,21 @@ interface NameTagData {
 
 ```typescript
 interface PDFService {
-  generatePDF(nameTags: NameTagData[]): Promise<Blob>;
+  generatePDF(nameTags: NameTagData[], config: PDFConfig): Promise<Blob>;
   downloadPDF(pdfBlob: Blob, filename: string): void;
+}
+
+interface PDFConfig {
+  pageSize: 'A4';
+  orientation: 'landscape' | 'portrait';
+  doubleSided: boolean;
+  frontFrameSize: FrameSize;
+  backFrameSize: FrameSize;
+}
+
+interface FrameSize {
+  width: number;  // cm
+  height: number; // cm
 }
 ```
 
@@ -203,10 +208,12 @@ interface XProfile {
 interface NameTagTemplate {
   id: string;
   name: string;
-  dimensions: {
-    width: number;    // mm
-    height: number;   // mm
-  };
+  frontSide: NameTagSide;
+  backSide: NameTagSide;
+}
+
+interface NameTagSide {
+  frameSize: FrameSize;
   elements: TemplateElement[];
 }
 
@@ -217,6 +224,11 @@ interface TemplateElement {
   styling: ElementStyle;
   content?: string;
   dataBinding?: keyof XProfile;
+}
+
+interface FrameSize {
+  width: number;  // cm
+  height: number; // cm
 }
 ```
 
@@ -320,6 +332,63 @@ const mockProfiles: XProfile[] = [
 - 最小権限の原則
 - Content Security Policy の適用
 
+## 両面印刷とA4サイズ対応設計
+
+### PDF レイアウト設計
+
+```mermaid
+graph TB
+    subgraph "A4ページ (横向き)"
+        subgraph "左半分 - 表面"
+            F1[名札表面]
+            F2[枠サイズ: 設定可能]
+            F3[プロフィール情報表示]
+        end
+        subgraph "右半分 - 裏面"
+            B1[名札裏面]
+            B2[枠サイズ: 設定可能]
+            B3[追加情報表示]
+        end
+    end
+```
+
+### 枠サイズ設定UI
+
+```typescript
+interface FrameSizeController {
+  frontFrameSize: FrameSize;
+  backFrameSize: FrameSize;
+  updateFrontFrameSize(size: FrameSize): void;
+  updateBackFrameSize(size: FrameSize): void;
+  validateFrameSize(size: FrameSize): boolean;
+}
+
+interface FrameSizeInput {
+  width: HTMLInputElement;  // cm単位
+  height: HTMLInputElement; // cm単位
+  preview: HTMLCanvasElement;
+}
+```
+
+### PDF生成プロセス
+
+1. **A4ページ設定**: 297mm × 210mm (横向き)
+2. **左側配置**: 表面レイアウト (0, 0) から (148.5mm, 210mm)
+3. **右側配置**: 裏面レイアウト (148.5mm, 0) から (297mm, 210mm)
+4. **枠サイズ適用**: ユーザー指定のcm値をmm単位に変換
+5. **プレビュー更新**: リアルタイムでレイアウト変更を反映
+
+### レスポンシブプレビュー
+
+```typescript
+interface PreviewController {
+  updatePreview(config: PDFConfig): void;
+  renderFrontSide(canvas: HTMLCanvasElement, frameSize: FrameSize): void;
+  renderBackSide(canvas: HTMLCanvasElement, frameSize: FrameSize): void;
+  calculateScale(containerSize: Size, frameSize: FrameSize): number;
+}
+```
+
 ## パフォーマンス最適化
 
 ### 画像処理
@@ -333,6 +402,7 @@ const mockProfiles: XProfile[] = [
 - Canvas要素の再利用
 - メモリ使用量の監視
 - バッチ処理のサイズ制限
+- A4サイズでの最適化されたレンダリング
 
 ### ネットワーク
 

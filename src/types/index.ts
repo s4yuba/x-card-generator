@@ -80,6 +80,9 @@ export interface AppSettings {
   defaultTemplate: string;
   recentProfiles: string[];
   maxRecentProfiles: number;
+  fontSize?: number;
+  primaryColor?: string;
+  backgroundColor?: string;
 }
 
 // Error Handling Types

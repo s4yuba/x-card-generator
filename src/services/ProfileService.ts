@@ -182,6 +182,7 @@ export class ProfileService {
       }, this.REQUEST_TIMEOUT);
 
       // Send message to background script to coordinate with content script
+      console.log('[ProfileService] Sending fetchProfileData message for:', url);
       chrome.runtime.sendMessage(
         {
           action: 'fetchProfileData',
@@ -191,15 +192,19 @@ export class ProfileService {
           clearTimeout(timeoutId);
           
           if (chrome.runtime.lastError) {
+            console.error('[ProfileService] Chrome runtime error:', chrome.runtime.lastError);
             logError('ProfileService.fetchProfileFromContentScript', chrome.runtime.lastError);
             resolve(null);
             return;
           }
 
+          console.log('[ProfileService] Received response:', response);
           if (response?.success && response.data) {
             const validated = validateXProfile(response.data);
+            console.log('[ProfileService] Validated profile:', validated);
             resolve(validated);
           } else {
+            console.error('[ProfileService] Failed response or no data:', response);
             resolve(null);
           }
         }

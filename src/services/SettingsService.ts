@@ -20,6 +20,13 @@ export class SettingsService {
   /**
    * Load settings from Chrome storage
    */
+  async getSettings(): Promise<AppSettings> {
+    return this.loadSettings();
+  }
+
+  /**
+   * Load settings from Chrome storage
+   */
   async loadSettings(): Promise<AppSettings> {
     try {
       // For Chrome extension environment
